@@ -1,0 +1,10 @@
+SCREEN_W = 800  # 宽度
+SCREEN_H = 600  # 高度
+GROUND_HEIGHT = SCREEN_H - 62
+
+BG_MULTI = 2.68
+PLAYER_MULTI = 2.0
+GRAVITY = 1.0
+ANTI_GRAVITY = 0.3
+
+Font = 'Times New Roman.ttf'
