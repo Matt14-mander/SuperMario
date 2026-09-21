@@ -42,3 +42,14 @@ python -m unittest discover -s tests -p "test_*.py"
 ```
 
 旧项目尚未迁移到新核心，现阶段不要删除 `source/` 或 `resources/`。
+
+## 当前可玩竖切
+
+Pygame 关卡现已由 `BasicPlatformerCore` 驱动。启动后使用：
+
+- `←` / `→`：移动；
+- `A` 或 `Space`：跳跃；
+- `S` 或 `Shift`：奔跑；
+- `Enter`：菜单确认。
+
+角色死亡后进入 Game Over，到达旗杆后进入 Level Complete；再次开始游戏会创建全新 episode。

@@ -8,9 +8,11 @@ def main():
     state_dict = {
         'main_menu': main_menu.MainMenu(),
         'load_screen': load_screen.LoadScreen(),
-        'level': level.Level()
+        'level': level.Level(),
+        'game_over': load_screen.GameOver(),
+        'level_complete': load_screen.LevelComplete(),
     }
-    game = tools.Game()
+    game = tools.Game(state_dict, 'main_menu')
     game.run()
 
 if __name__ == '__main__':

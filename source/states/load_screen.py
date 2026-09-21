@@ -1,4 +1,4 @@
-from .. components import info
+from ..components import info
 import pygame
 
 class LoadScreen:
@@ -8,6 +8,10 @@ class LoadScreen:
         self.duration = 2000
         self.timer = 0
         self.info = info.Info('load_screen')
+
+    def enter(self):
+        self.finished = False
+        self.timer = 0
 
     def is_finished(self):
         return self.finished
@@ -33,3 +37,11 @@ class GameOver(LoadScreen):
         self.duration = 4000
         self.timer = 0
         self.info = info.Info('game_over')
+
+class LevelComplete(LoadScreen):
+    def __init__(self):
+        LoadScreen.__init__(self)
+        self.next = 'main_menu'
+        self.duration = 2500
+        self.timer = 0
+        self.info = info.Info('level_complete')

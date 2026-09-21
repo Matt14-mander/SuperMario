@@ -129,32 +129,42 @@ class Player(pygame.sprite.Sprite):
             self.image = self.left_frames[self.frame_index]
 
     def can_jump_or_not(self, keys):
-        if not pygame.key.get_pressed()[pygame.K_a]:
+        if not keys[pygame.K_a]:
             self.can_jump = True
 
     def stand(self, keys):
         self.frame_index = 0
         self.x_vel = 0
         self.y_vel = 0
-        if pygame.key.get_pressed()[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT]:
             self.face_right = True
             self.state = 'walk'
-        elif pygame.key.get_pressed()[pygame.K_LEFT]:
+            # Pygame Rect stores integer coordinates, so the original 0.15 first
+            # step was truncated to zero and made short key presses look ignored.
+            self.x_vel = max(
+                1.0,
+                self.calc_vel(self.x_vel, self.walk_accel, self.max_walk_vel, True),
+            )
+        elif keys[pygame.K_LEFT]:
             self.face_right = False
             self.state = 'walk'
-        elif pygame.key.get_pressed()[pygame.K_a] and self.can_jump:
+            self.x_vel = min(
+                -1.0,
+                self.calc_vel(self.x_vel, self.walk_accel, self.max_walk_vel, False),
+            )
+        elif keys[pygame.K_a] and self.can_jump:
             self.state = 'jump'
             self.y_vel = self.jump_vel
 
     def walk(self, keys):
-        if pygame.key.get_pressed()[pygame.K_s]:
+        if keys[pygame.K_s]:
             self.max_x_vel = self.max_run_vel
             self.x_accel = self.run_accel
         else:
             self.max_x_vel = self.max_walk_vel
             self.x_accel = self.walk_accel
 
-        if pygame.key.get_pressed()[pygame.K_a] and self.can_jump:
+        if keys[pygame.K_a] and self.can_jump:
             self.state = 'jump'
             self.y_vel = self.jump_vel
 
@@ -170,13 +180,13 @@ class Player(pygame.sprite.Sprite):
         # else:
         #     self.image = self.left_frames[self.frame_index]
 
-        if pygame.key.get_pressed()[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT]:
             self.face_right = True
             if self.x_vel < 0:
                 self.frame_index = 5
                 self.x_accel = self.turn_accel
             self.x_vel = self.calc_vel(self.x_vel, self.x_accel, self.max_x_vel, True)
-        elif pygame.key.get_pressed()[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT]:
             self.face_right = False
             if self.x_vel > 0:
                 self.frame_index = 5
@@ -203,12 +213,12 @@ class Player(pygame.sprite.Sprite):
         if self.y_vel >= 0:
             self.state = 'fall'
 
-        if pygame.key.get_pressed()[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT]:
             self.x_vel = self.calc_vel(self.x_vel, self.x_accel, self.max_x_vel, True)
-        elif pygame.key.get_pressed()[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT]:
             self.x_vel = self.calc_vel(self.x_vel, self.x_accel, self.max_x_vel, False)
 
-        if not pygame.key.get_pressed()[pygame.K_a]:
+        if not keys[pygame.K_a]:
             self.state = 'fall'
 
     def fall(self, keys):

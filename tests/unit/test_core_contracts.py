@@ -7,6 +7,9 @@ class ActionContractTests(unittest.TestCase):
     def test_action_ids_are_stable(self) -> None:
         self.assertEqual(Action.NOOP.value, 0)
         self.assertEqual(Action.RIGHT_RUN.value, 6)
+        self.assertEqual(Action.LEFT_RUN.value, 7)
+        self.assertEqual(Action.LEFT_RUN_JUMP.value, 8)
+        self.assertEqual(Action.RIGHT_RUN_JUMP.value, 9)
 
     def test_combined_action_decodes_to_control(self) -> None:
         control = control_for(Action.LEFT_JUMP)
@@ -17,6 +20,12 @@ class ActionContractTests(unittest.TestCase):
     def test_unknown_action_is_rejected(self) -> None:
         with self.assertRaises(ValueError):
             control_for(99)
+
+    def test_run_jump_action_preserves_all_controls(self) -> None:
+        control = control_for(Action.RIGHT_RUN_JUMP)
+        self.assertEqual(control.horizontal, 1)
+        self.assertTrue(control.jump)
+        self.assertTrue(control.run)
 
 
 class SnapshotContractTests(unittest.TestCase):

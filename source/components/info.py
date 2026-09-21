@@ -1,4 +1,6 @@
 from cProfile import label
+import os
+from pathlib import Path
 
 import pygame
 from .. import constants as C
@@ -27,6 +29,8 @@ class Info:
             self.player_image = tools.get_image(setup.GRAPHICS['mario_bros'], 178, 32, 12, 16, (0,0,0), C.BG_MULTI)
         elif self.state == 'game_over':
             self.state_labels.append((self.create_label('GAME OVER'), (280, 300)))
+        elif self.state == 'level_complete':
+            self.state_labels.append((self.create_label('LEVEL COMPLETE'), (230, 300)))
 
     def create_info_labels(self):
         self.info_label = []
@@ -38,7 +42,15 @@ class Info:
         self.info_label.append((self.create_label('1 - 1'), (480, 55)))
 
     def create_label(self, label, size=40, width_scale=1.25, height_scale=1):
-        font = pygame.font.SysFont(C.Font, size)
+        # Avoid pygame.font.SysFont here. Some Windows/MSYS installations expose
+        # non-path registry values that make Pygame's system-font scan crash.
+        windows_font = Path(os.environ.get('WINDIR', '')) / 'Fonts' / 'times.ttf'
+        configured_font = Path(C.Font)
+        font_path = next(
+            (path for path in (windows_font, configured_font) if path.is_file()),
+            None,
+        )
+        font = pygame.font.Font(str(font_path) if font_path else None, size)
         label_image = font.render(label, True, (255,255,255))
         label_image.set_colorkey((0,0,0,0))
         rect = label_image.get_rect()

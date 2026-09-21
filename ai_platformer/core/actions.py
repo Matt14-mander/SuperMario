@@ -14,6 +14,9 @@ class Action(IntEnum):
     LEFT_JUMP = 4
     RIGHT_JUMP = 5
     RIGHT_RUN = 6
+    LEFT_RUN = 7
+    LEFT_RUN_JUMP = 8
+    RIGHT_RUN_JUMP = 9
 
 
 @dataclass(frozen=True, slots=True)
@@ -37,6 +40,9 @@ _ACTION_CONTROLS: dict[Action, Control] = {
     Action.LEFT_JUMP: Control(horizontal=-1, jump=True),
     Action.RIGHT_JUMP: Control(horizontal=1, jump=True),
     Action.RIGHT_RUN: Control(horizontal=1, run=True),
+    Action.LEFT_RUN: Control(horizontal=-1, run=True),
+    Action.LEFT_RUN_JUMP: Control(horizontal=-1, jump=True, run=True),
+    Action.RIGHT_RUN_JUMP: Control(horizontal=1, jump=True, run=True),
 }
 
 

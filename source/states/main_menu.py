@@ -25,6 +25,12 @@ class MainMenu:
         self.finished = False
         self.next = 'load_screen'
 
+    def enter(self):
+        self.finished = False
+        self.next = 'load_screen'
+        self.cursor.state = '1P'
+        self.cursor.rect.y = 360
+
     def setup_background(self):
         self.background = setup.GRAPHICS['level_1']
         self.background_rect = self.background.get_rect()
@@ -59,11 +65,11 @@ class MainMenu:
             # print("DOWN key pressed, self.next:", self.next)
         elif keys[pygame.K_RETURN]:
             if self.cursor.state == '1P':
+                self.next = 'load_screen'
                 self.finished = True
-                print("1P selected, self.next:", self.next, self.finished)
             elif self.cursor.state == '2P':
+                self.next = 'level'
                 self.finished = True
-                print("2P selected, self.next:", self.next, self.finished)
 
     def is_finished(self):
         return self.finished
@@ -73,13 +79,6 @@ class MainMenu:
         # print("self.next:", self.next)
 
         self.update_cursor(keys)
-
-        if self.finished:
-            if self.cursor.state == '1P':
-                self.next = 'load_screen'
-            elif self.cursor.state == '2P':
-                self.next = 'level'
-            self.finished = False
 
         # 绘制背景、标题、玩家图像和更新后的光标图像
         surface.blit(self.background, self.viewport)

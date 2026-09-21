@@ -6,7 +6,7 @@
 
 ## Phase 0：仓库基线与架构骨架
 
-状态：**进行中**
+状态：**核心骨架完成，仓库清理仍在进行**
 
 目标：保住原始项目，同时为新实现建立清晰边界。
 
@@ -14,7 +14,7 @@
 - [x] 建立新 Python package 和模块目录；
 - [x] 定义稳定离散动作、状态快照和核心引擎协议；
 - [x] 建立依赖分组、测试目录和基础文档；
-- [ ] 修复 legacy 启动入口，记录可运行基线；
+- [x] 修复 legacy 启动入口并加入有限帧 smoke 能力；
 - [ ] 清点重复的 `data/` 与 `source/data/`，确定唯一事实来源；
 - [ ] 为旧版录制一个人工操作 smoke path。
 
@@ -22,17 +22,46 @@
 
 ## Phase 1：确定性 Headless Core
 
+状态：**首个 headless 竖切已完成，尚未接管 Pygame 游戏**
+
 目标：在没有 Pygame 窗口、图片和音频的条件下完整推进基础关卡。
 
-- [ ] 定义固定 timestep 和数值单位；
-- [ ] 从旧版迁移玩家移动、跳跃和重力；
-- [ ] 实现 axis-aligned tile/rect collision；
-- [ ] 实现出生、死亡、终点和 episode 上限；
-- [ ] 将旧 `level_1.json` 适配到临时 LevelSpec；
-- [ ] 支持 `reset(seed, level_id)` 和 `step(action)`；
-- [ ] 增加 determinism、碰撞、跳跃和终止条件测试。
+- [x] 定义固定 tick 和数值单位；
+- [x] 从旧版迁移玩家移动、跳跃和重力；
+- [x] 实现 axis-aligned rect collision；
+- [x] 实现出生、坠落死亡、终点和 episode 上限；
+- [x] 将旧 `level_1.json` 适配到临时 `LevelDefinition`；
+- [x] 支持 `reset(seed, level_id)` 和 `step(action)`；
+- [x] 增加 determinism、行走、跳跃、死亡和终点测试；
+- [ ] 覆盖斜向顶撞、连续多碰撞体和高速穿透边界用例；
+- [ ] 迁移金币、敌人、砖块和关卡事件。
 
 验收标准：相同 seed 与 action 序列产生完全相同的 snapshots；10,000 个 headless ticks 不需要初始化 Pygame。
+
+## Phase 1.5：可玩 Pygame 竖切
+
+状态：**代码竖切完成，等待人工游玩验收**
+
+当前 legacy 版本只能启动和演示基础移动，不能作为“可正常游玩”的验收基线：
+
+- 关卡 JSON 中的金币、砖块、箱子、敌人、checkpoint 和旗杆没有接入 `Level`；
+- 到达旗杆没有胜利判定；
+- 状态机复用同一个 `Level` 实例，死亡后重新开始不会得到全新关卡；
+- legacy `Player` 和新 `BasicPlatformerCore` 是两套运动实现，行为会继续漂移；
+- 当前键盘抽象仍只服务 legacy 对象，还没有输出统一的 `Action`。
+
+下一迭代只完成以下竖切：
+
+- [x] 实现 `KeyboardController -> Action`；
+- [x] 让 Pygame 主循环调用 `BasicPlatformerCore.step(action)`；
+- [x] renderer 只读取 `WorldSnapshot`，不再自行维护玩家物理状态；
+- [x] 渲染玩家、静态地形、相机和旗杆终点；
+- [x] 实现死亡、成功以及全新 episode 重置；
+- [x] 保证连续开始两局时状态完全重置；
+- [x] 增加按住、跳跃、死亡、成功和重开集成测试；
+- [ ] 完成一次至少 5 分钟的人工游玩 smoke test。
+
+验收标准：从菜单进入关卡后可以移动、跳跃、死亡、重开并到达终点；第二局与第一局行为一致；Pygame 和 headless 使用同一套物理状态。
 
 ## Phase 2：Pygame Adapter 与 Gymnasium Environment
 
@@ -104,15 +133,9 @@
 
 ## 下一迭代建议
 
-下一迭代只处理 Phase 0 剩余项和 Phase 1 的最小竖切：
+先完成人工游玩验收并处理暴露出的手感/碰撞问题；通过后进入 Phase 2，封装 `PlatformerState-v0` Gymnasium environment。
 
-1. 修复 legacy 启动；
-2. 加入输入抽象，让玩家不再直接访问 `pygame.key.get_pressed()`；
-3. 用旧 `level_1.json` 构造最小 headless world；
-4. 完成平地行走、跳跃、死亡和终点；
-5. 用固定动作序列验证 deterministic replay。
-
-在这条竖切完成前，不开始接入 PPO、Jev 或 LLM SDK。
+在该竖切通过人工游玩验收前，不接入 Gymnasium、PPO、Jev 或 LLM SDK，也不继续扩展 legacy `Player` 的独立物理逻辑。
 
 ## 暂不纳入首轮的工作
 

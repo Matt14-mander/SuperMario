@@ -1,71 +1,49 @@
 import os
 
 import pygame
-import random
+
+from source.input import KeyboardInput
 
 
 class Game:
     def __init__(self, state_dict, start_state):
         self.screen = pygame.display.get_surface()
         self.clock = pygame.time.Clock()
-        self.keys = pygame.key.get_pressed()
-        # print("Current Keys:", self.keys)
-        self.key_states = {
-            pygame.K_UP: False,
-            pygame.K_DOWN: False,
-            pygame.K_RETURN: False,
-        }
+        self.input = KeyboardInput()
         self.state_dict = state_dict
         self.state = self.state_dict[start_state]
 
     def update(self):
+        self.state.update(self.screen, self.input)
         if self.state.finished:
             next_state = self.state.next
             self.state.finished = False
             self.state = self.state_dict[next_state]
+            enter = getattr(self.state, 'enter', None)
+            if enter is not None:
+                enter()
 
-        # if self.state is not None:
-        self.state.update(self.screen, self.keys)
+    def run(self, max_frames=None):
+        """Run the legacy loop; ``max_frames`` supports automated smoke tests."""
 
-    def run(self, state):
-        while True:
-            # print("Inside game loop")
+        frame_count = 0
+        running = True
+        while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    quit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_UP:
-                        # print("UP key pressed")
-                        self.key_states[pygame.K_UP] = True
-                    elif event.key == pygame.K_DOWN:
-                        # print("DOWN key pressed")
-                        self.key_states[pygame.K_DOWN] = True
-                    elif event.key == pygame.K_RETURN:
-                        # print("RETURN key pressed")
-                        self.key_states[pygame.K_RETURN] = True
-                        self.state.finished = True
+                    running = False
+                else:
+                    self.input.handle_event(event)
 
-                elif event.type == pygame.KEYUP:
-                    if event.key == pygame.K_UP:
-                        self.key_states[pygame.K_UP] = False
-                    elif event.key == pygame.K_DOWN:
-                        self.key_states[pygame.K_DOWN] = False
-                    elif event.key == pygame.K_RETURN:
-                        self.key_states[pygame.K_RETURN] = False
-                        self.state.finished = False
-                    # print("Current State:", self.state.__class__.__name__)
-
-            if self.state.finished:
-                next_state = self.state.next
-                self.state.finished = False
-                print("Switching to next state:", next_state)
-                self.state = self.state_dict[next_state]
-
+            self.input.sync(pygame.key.get_pressed())
             self.update()
-            # self.state.update(self.screen, self.key_states)
             pygame.display.update()
             self.clock.tick(60)
+            frame_count += 1
+            if max_frames is not None and frame_count >= max_frames:
+                running = False
+
+        pygame.quit()
 
 
 def load_graphics(path, accept=('.jpg', '.png', '.bmp', '.gif')):
