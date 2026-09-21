@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+*.egg-info/
+
+# Training and benchmark outputs
+runs/
+checkpoints/
+models/*.zip
+models/*.onnx
+videos/
+
+# Local secrets and editor files
+.env
+.idea/
+.vscode/
