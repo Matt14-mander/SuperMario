@@ -18,12 +18,12 @@ PPO 适合作为本项目第一个“学习型”AI，但不应成为第一个 a
 | Core | 确定性 reset/step、固定 action、终止条件 | 已满足 |
 | Dynamic content | 至少一种动态实体、score/reward/reset | 金币已满足 |
 | Settings | 版本化 seed、物理与 episode 参数 | 已满足 |
-| Environment | Gymnasium reset/step/spaces/render | 未实现 |
-| Validation | Gymnasium 与 SB3 checker | 未实现 |
-| Baselines | random、move-right、rule-jump | 未实现 |
-| Benchmark | 固定训练/验证/未见 seeds 与指标 | 未实现 |
+| Environment | Gymnasium reset/step/spaces/render | `PlatformerState-v0` 已实现 |
+| Validation | Gymnasium 与 SB3 checker | Gymnasium 已通过，SB3 待执行 |
+| Baselines | random、move-right、rule-jump | 已实现 |
+| Benchmark | 固定训练/验证/未见 seeds 与指标 | v0 已实现 |
 
-因此距离 PPO 还差一个完整的 Environment/Benchmark 迭代，不需要等待所有敌人和砖块迁移完成。
+因此环境接口已经达到 PPO 预备阶段；在 reward 压力测试、随机 rollout 门禁和 SB3 checker 完成后即可开始正式 PPO baseline，不需要等待所有敌人和砖块迁移完成。
 
 ## PlatformerState-v0 建议契约
 

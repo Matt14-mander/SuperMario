@@ -16,6 +16,8 @@
 - 金币动态实体、收集状态、score、reward 与 HUD；
 - 暂停、快速重开和版本化 gameplay settings；
 - headless 单元测试与真实 Pygame 集成测试；
+- 已注册的 `PlatformerState-v0`：14 维状态 observation、10 个离散动作与 reward breakdown；
+- random、move-right、rule-jump 三个固定 seed scripted benchmark 基线；
 - 为 Gymnasium、PPO、PCG、DDA、Jev、LLM 和 ONNX 预留的模块边界。
 
 尚未迁移：敌人、可交互砖块/箱子、power-up、checkpoint/传送、完整音频流程与原创资产。
@@ -63,6 +65,34 @@ python -m unittest discover -s tests -p "test_*.py" -v
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -p "test_*.py" -v
 ```
+
+## Gymnasium 环境与 Benchmark
+
+安装环境/评估依赖并运行固定验证集：
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[benchmark]"
+.\.venv\Scripts\platformer-benchmark.exe --suite validation
+```
+
+不做 editable install 时，可在仓库根目录直接运行：
+
+```powershell
+$env:PYTHONPATH = (Resolve-Path ".deps").Path
+& "C:\Users\Rog\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe" -m scripts.benchmark_scripted --suite validation
+```
+
+代码中创建环境：
+
+```python
+import gymnasium as gym
+import ai_platformer.envs  # 注册 PlatformerState-v0
+
+env = gym.make("PlatformerState-v0")
+observation, info = env.reset(seed=100)
+```
+
+seed 集合和 action-repeat 固定在 [`config/benchmark_v0.json`](config/benchmark_v0.json)。当前关卡本身尚无随机内容，因此 scripted 策略跨 seed 的结果相同；这些 seed 会在 PCG/随机实体进入后继续作为稳定评估协议。
 
 ## 架构
 
@@ -119,6 +149,6 @@ LLM/PCG、DDA 和 Jev 会在 LevelSpec、telemetry 与 benchmark 稳定后接入
 
 ## 项目阶段
 
-当前阶段：**可玩共享核心 + 首个动态内容（金​​币）**。
+当前阶段：**可玩共享核心 + `PlatformerState-v0` + scripted benchmark**。
 
-下一阶段：**`PlatformerState-v0`、observation/reward v1、scripted benchmark，然后 PPO baseline**。
+下一阶段：**reward/observation 压力测试、SB3 checker、随机 episode 稳定性门禁，然后 PPO baseline**。

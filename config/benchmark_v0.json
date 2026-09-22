@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "environment_id": "PlatformerState-v0",
+  "action_repeat": 4,
+  "suites": {
+    "train": [0, 1, 2, 3, 4, 5, 6, 7],
+    "validation": [100, 101, 102, 103],
+    "unseen": [1000, 1001, 1002, 1003]
+  }
+}

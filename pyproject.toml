@@ -12,10 +12,17 @@ dependencies = [
     "pygame>=2.5,<3",
 ]
 
+[project.scripts]
+platformer-benchmark = "scripts.benchmark_scripted:main"
+
 [project.optional-dependencies]
+benchmark = [
+    "gymnasium>=1.0,<2",
+    "numpy>=1.26,<3",
+]
 training = [
-    "gymnasium>=1.0",
-    "numpy>=1.26",
+    "gymnasium>=1.0,<2",
+    "numpy>=1.26,<3",
     "stable-baselines3>=2.4",
     "torch>=2.2",
 ]
@@ -29,7 +36,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["ai_platformer*"]
+include = ["ai_platformer*", "scripts*"]
 
 [tool.ruff]
 line-length = 100

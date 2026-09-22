@@ -63,12 +63,14 @@
 目标：同一个 core 同时支持人类游玩和 agent 训练。
 
 - [x] 新建 Pygame renderer 和 keyboard controller；
-- [ ] 实现 `PlatformerState-v0`；
-- [ ] 定义紧凑状态 observation 和 reward v1；
-- [ ] 添加 action repeat、time limit 和统计 wrappers；
-- [ ] 通过 Gymnasium environment checker；
-- [ ] 实现 random、move-right、rule-jump 三个 scripted baselines；
-- [ ] 记录 episode replay 和关键指标。
+- [x] 实现 `PlatformerState-v0`；
+- [x] 定义 14 维状态 observation 和 reward v1；
+- [x] 添加 action repeat、time limit 和 episode 统计；
+- [x] 通过 Gymnasium environment checker；
+- [x] 实现 random、move-right、rule-jump 三个 scripted baselines；
+- [x] 记录固定 seed 的 episode 结果和关键指标；
+- [ ] 增加逐 tick replay 文件与回放工具；
+- [ ] 通过 SB3 environment checker 和 1,000 次随机 episode 门禁。
 
 验收标准：键盘与 scripted agent 走相同 action 接口；environment checker 通过；benchmark 可批量运行。
 
@@ -128,7 +130,7 @@
 
 ## 下一迭代建议
 
-先完成人工游玩验收并处理暴露出的手感/碰撞问题；通过后进入 Phase 2，封装 `PlatformerState-v0` Gymnasium environment。
+先完成 SB3 checker、1,000 次随机 episode 稳定性检查和 reward sanity check；通过后进入 Phase 3，训练首个 MLP PPO baseline。
 
 在该竖切通过人工游玩验收前，不接入 Gymnasium、PPO、Jev 或 LLM SDK，也不继续扩展 legacy `Player` 的独立物理逻辑。
 
