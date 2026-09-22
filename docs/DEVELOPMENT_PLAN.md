@@ -22,7 +22,7 @@
 
 ## Phase 1：确定性 Headless Core
 
-状态：**首个 headless 竖切已完成，尚未接管 Pygame 游戏**
+状态：**首个 headless 竖切完成，并已接管 Pygame 游戏**
 
 目标：在没有 Pygame 窗口、图片和音频的条件下完整推进基础关卡。
 
@@ -34,7 +34,8 @@
 - [x] 支持 `reset(seed, level_id)` 和 `step(action)`；
 - [x] 增加 determinism、行走、跳跃、死亡和终点测试；
 - [ ] 覆盖斜向顶撞、连续多碰撞体和高速穿透边界用例；
-- [ ] 迁移金币、敌人、砖块和关卡事件。
+- [x] 迁移金币、score、reward 和动态实体快照；
+- [ ] 迁移敌人、砖块、箱子和关卡事件。
 
 验收标准：相同 seed 与 action 序列产生完全相同的 snapshots；10,000 个 headless ticks 不需要初始化 Pygame。
 
@@ -42,13 +43,7 @@
 
 状态：**代码竖切完成，等待人工游玩验收**
 
-当前 legacy 版本只能启动和演示基础移动，不能作为“可正常游玩”的验收基线：
-
-- 关卡 JSON 中的金币、砖块、箱子、敌人、checkpoint 和旗杆没有接入 `Level`；
-- 到达旗杆没有胜利判定；
-- 状态机复用同一个 `Level` 实例，死亡后重新开始不会得到全新关卡；
-- legacy `Player` 和新 `BasicPlatformerCore` 是两套运动实现，行为会继续漂移；
-- 当前键盘抽象仍只服务 legacy 对象，还没有输出统一的 `Action`。
+共享 core 已接管移动、碰撞、金币、死亡、通关和 reset。当前未迁移内容集中在砖块、箱子、敌人、power-up、checkpoint/传送和音频事件。
 
 下一迭代只完成以下竖切：
 
@@ -67,7 +62,7 @@
 
 目标：同一个 core 同时支持人类游玩和 agent 训练。
 
-- [ ] 新建 Pygame renderer 和 keyboard controller；
+- [x] 新建 Pygame renderer 和 keyboard controller；
 - [ ] 实现 `PlatformerState-v0`；
 - [ ] 定义紧凑状态 observation 和 reward v1；
 - [ ] 添加 action repeat、time limit 和统计 wrappers；

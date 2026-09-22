@@ -1,4 +1,3 @@
-from cProfile import label
 import os
 from pathlib import Path
 
@@ -14,6 +13,8 @@ class Info:
         self.create_state_labels()
         self.create_info_labels()
         self.flash_coin = coin.FlashingCoin()
+        self._dynamic_key = None
+        self._dynamic_labels = None
 
     def create_state_labels(self):
         self.state_labels = []
@@ -37,8 +38,9 @@ class Info:
         self.info_label.append((self.create_label('MARIO'), (75, 30)))
         self.info_label.append((self.create_label('WORLD'), (450, 30)))
         self.info_label.append((self.create_label('TIME'), (625, 30)))
-        self.info_label.append((self.create_label('000000'), (75, 55)))
-        self.info_label.append((self.create_label('x00'), (300, 55)))
+        if self.state != 'level':
+            self.info_label.append((self.create_label('000000'), (75, 55)))
+            self.info_label.append((self.create_label('x00'), (300, 55)))
         self.info_label.append((self.create_label('1 - 1'), (480, 55)))
 
     def create_label(self, label, size=40, width_scale=1.25, height_scale=1):
@@ -61,13 +63,29 @@ class Info:
     def update(self):
         self.flash_coin.update()
 
-    def draw(self, surface):
+    def draw(self, surface, game_state=None):
         for label in self.state_labels:
             surface.blit(label[0], label[1])
         for label in self.info_label:
             surface.blit(label[0], label[1])
+        if game_state is not None:
+            self.draw_game_state(surface, game_state)
         surface.blit(self.flash_coin.image, self.flash_coin.rect)
 
         if self.state == 'load_screen':
             surface.blit(self.player_image,(300,270))
+
+    def draw_game_state(self, surface, game_state):
+        score = int(game_state.metadata.get('score', 0))
+        coins = int(game_state.metadata.get('coins_collected', 0))
+        dynamic_key = (score, coins)
+        if dynamic_key != self._dynamic_key:
+            self._dynamic_key = dynamic_key
+            self._dynamic_labels = (
+                self.create_label(f'{score:06d}', size=36, width_scale=1.0),
+                self.create_label(f'x{coins:02d}', size=36, width_scale=1.0),
+            )
+
+        surface.blit(self._dynamic_labels[0], (75, 55))
+        surface.blit(self._dynamic_labels[1], (300, 55))
 

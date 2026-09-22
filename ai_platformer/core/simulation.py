@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from .actions import Action, Control, control_for
 from .engine import StepResult
 from .level import LevelDefinition, SolidRect
-from .state import PlayerSnapshot, WorldSnapshot
+from .state import EntitySnapshot, PlayerSnapshot, WorldSnapshot
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,6 +51,8 @@ class BasicPlatformerCore:
         self._seed = 0
         self._episode_id = ""
         self._jump_was_pressed = False
+        self._collected_ids: set[str] = set()
+        self._score = 0
 
     @property
     def state(self) -> WorldSnapshot:
@@ -70,6 +72,8 @@ class BasicPlatformerCore:
         self._alive = True
         self._facing = 1
         self._jump_was_pressed = False
+        self._collected_ids = set()
+        self._score = 0
         self._grounded = self._has_support()
         self._state = self._snapshot()
         return self._state
@@ -87,6 +91,7 @@ class BasicPlatformerCore:
         self._move_horizontal()
         self._apply_vertical_acceleration(control)
         self._move_vertical()
+        collected = self._collect_overlapping_items()
 
         outcome: str | None = None
         if self._y > level.height:
@@ -104,17 +109,27 @@ class BasicPlatformerCore:
         self._jump_was_pressed = control.jump
         self._state = self._snapshot()
         reward = self._state.progress - previous_progress
+        reward += 0.05 * len(collected)
         if outcome == "success":
             reward += 1.0
         elif outcome == "death":
             reward -= 1.0
+
+        info: dict[str, object] = {
+            "score": self._score,
+            "coins_collected": len(self._collected_ids),
+        }
+        if outcome:
+            info["outcome"] = outcome
+        if collected:
+            info["collected"] = collected
 
         return StepResult(
             state=self._state,
             reward=reward,
             terminated=outcome in {"success", "death"},
             truncated=truncated,
-            info={"outcome": outcome} if outcome else {},
+            info=info,
         )
 
     def _require_level(self) -> LevelDefinition:
@@ -203,8 +218,34 @@ class BasicPlatformerCore:
         distance = level.goal_x - level.spawn_x
         return max(0.0, min(1.0, (self._x - level.spawn_x) / distance))
 
+    def _collect_overlapping_items(self) -> tuple[str, ...]:
+        collected: list[str] = []
+        for item in self._require_level().collectibles:
+            if item.entity_id in self._collected_ids:
+                continue
+            if (
+                self._x < item.x + item.width
+                and self._x + self.config.player_width > item.x
+                and self._y < item.y + item.height
+                and self._y + self.config.player_height > item.y
+            ):
+                self._collected_ids.add(item.entity_id)
+                self._score += item.score
+                collected.append(item.entity_id)
+        return tuple(collected)
+
     def _snapshot(self) -> WorldSnapshot:
         level = self._require_level()
+        entities = tuple(
+            EntitySnapshot(
+                entity_id=item.entity_id,
+                kind=item.kind,
+                x=item.x,
+                y=item.y,
+                active=item.entity_id not in self._collected_ids,
+            )
+            for item in level.collectibles
+        )
         return WorldSnapshot(
             episode_id=self._episode_id,
             tick=self._tick,
@@ -219,5 +260,11 @@ class BasicPlatformerCore:
                 alive=self._alive,
                 facing=self._facing,
             ),
+            entities=entities,
             progress=self._progress(),
+            metadata={
+                "score": self._score,
+                "coins_collected": len(self._collected_ids),
+                "coins_total": len(level.collectibles),
+            },
         )

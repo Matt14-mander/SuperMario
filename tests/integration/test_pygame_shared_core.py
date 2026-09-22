@@ -71,12 +71,31 @@ class SharedCorePygameTests(unittest.TestCase):
     def test_terminal_outcome_routes_to_correct_screen(self) -> None:
         level = self.level_type()
         level.outcome = "success"
-        level.terminal_timer = pygame.time.get_ticks() - level.TERMINAL_DISPLAY_MS
+        level.terminal_timer = (
+            pygame.time.get_ticks() - level.settings.terminal_display_ms
+        )
 
         level.update(self.surface, self.keys())
 
         self.assertTrue(level.finished)
         self.assertEqual(level.next, "level_complete")
+
+    def test_pause_and_restart_controls(self) -> None:
+        from source.input import KeyboardInput
+
+        level = self.level_type()
+        keys = KeyboardInput()
+        keys.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_p))
+        level.update(self.surface, keys)
+        self.assertTrue(level.paused)
+        self.assertEqual(level.state.tick, 0)
+
+        keys.end_frame()
+        keys.handle_event(pygame.event.Event(pygame.KEYUP, key=pygame.K_p))
+        keys.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_r))
+        level.update(self.surface, keys)
+        self.assertFalse(level.paused)
+        self.assertEqual(level.state.tick, 0)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,23 @@ class SolidRect:
 
 
 @dataclass(frozen=True, slots=True)
+class CollectibleSpawn:
+    entity_id: str
+    kind: str
+    x: float
+    y: float
+    width: float = 16.0
+    height: float = 24.0
+    score: int = 100
+
+    def __post_init__(self) -> None:
+        if self.width <= 0 or self.height <= 0:
+            raise ValueError("collectible dimensions must be positive")
+        if self.score < 0:
+            raise ValueError("collectible score cannot be negative")
+
+
+@dataclass(frozen=True, slots=True)
 class LevelDefinition:
     level_id: str
     width: float
@@ -32,6 +49,7 @@ class LevelDefinition:
     spawn_bottom: float
     goal_x: float
     solids: tuple[SolidRect, ...]
+    collectibles: tuple[CollectibleSpawn, ...] = ()
 
     def __post_init__(self) -> None:
         if self.width <= 0 or self.height <= 0:

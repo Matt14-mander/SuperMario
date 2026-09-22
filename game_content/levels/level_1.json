@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "collectibles": [
+    {"id": "intro-coin-0", "kind": "coin", "x": 500, "y": 490},
+    {"id": "intro-coin-1", "kind": "coin", "x": 540, "y": 458},
+    {"id": "intro-coin-2", "kind": "coin", "x": 580, "y": 438},
+    {"id": "intro-coin-3", "kind": "coin", "x": 620, "y": 458},
+    {"id": "intro-coin-4", "kind": "coin", "x": 660, "y": 490}
+  ]
+}

@@ -6,12 +6,13 @@ from source.input import KeyboardInput
 
 
 class Game:
-    def __init__(self, state_dict, start_state):
+    def __init__(self, state_dict, start_state, *, render_fps=60):
         self.screen = pygame.display.get_surface()
         self.clock = pygame.time.Clock()
         self.input = KeyboardInput()
         self.state_dict = state_dict
         self.state = self.state_dict[start_state]
+        self.render_fps = render_fps
 
     def update(self):
         self.state.update(self.screen, self.input)
@@ -37,8 +38,9 @@ class Game:
 
             self.input.sync(pygame.key.get_pressed())
             self.update()
+            self.input.end_frame()
             pygame.display.update()
-            self.clock.tick(60)
+            self.clock.tick(self.render_fps)
             frame_count += 1
             if max_frames is not None and frame_count >= max_frames:
                 running = False

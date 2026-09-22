@@ -4,6 +4,7 @@ from ai_platformer.content.legacy import LegacyLevelRepository
 from ai_platformer.core import (
     Action,
     BasicPlatformerCore,
+    CollectibleSpawn,
     LevelDefinition,
     SolidRect,
 )
@@ -17,6 +18,7 @@ def flat_level(
     spawn_x: float = 10.0,
     floor_y: float = 100.0,
     goal_x: float = 450.0,
+    collectibles: tuple[CollectibleSpawn, ...] = (),
 ) -> LevelDefinition:
     return LevelDefinition(
         level_id=level_id,
@@ -26,6 +28,7 @@ def flat_level(
         spawn_bottom=floor_y,
         goal_x=goal_x,
         solids=(SolidRect(0.0, floor_y, width, 20.0),),
+        collectibles=collectibles,
     )
 
 
@@ -101,6 +104,27 @@ class HeadlessSimulationTests(unittest.TestCase):
 
         self.assertEqual(replay(), replay())
 
+    def test_coin_collection_updates_entity_score_and_reward(self) -> None:
+        coin = CollectibleSpawn("coin-test", "coin", x=38.0, y=72.0)
+        level = flat_level(collectibles=(coin,))
+        core = BasicPlatformerCore(lambda _: level)
+        core.reset(seed=7, level_id=level.level_id)
+
+        for _ in range(12):
+            result = core.step(Action.RIGHT)
+            if result.info.get("collected"):
+                break
+
+        self.assertEqual(result.info["collected"], ("coin-test",))
+        self.assertEqual(result.state.metadata["score"], 100)
+        self.assertEqual(result.state.metadata["coins_collected"], 1)
+        self.assertFalse(result.state.entities[0].active)
+        self.assertGreaterEqual(result.reward, 0.05)
+
+        reset_state = core.reset(seed=7, level_id=level.level_id)
+        self.assertEqual(reset_state.metadata["score"], 0)
+        self.assertTrue(reset_state.entities[0].active)
+
     def test_legacy_level_one_loads_and_spawns_on_ground(self) -> None:
         repository = LegacyLevelRepository()
         core = BasicPlatformerCore(repository.load)
@@ -110,6 +134,8 @@ class HeadlessSimulationTests(unittest.TestCase):
         self.assertEqual(state.player.x, 110.0)
         self.assertEqual(state.player.y, 506.0)
         self.assertTrue(state.player.grounded)
+        self.assertEqual(state.metadata["coins_total"], 25)
+        self.assertEqual(state.entities[20].entity_id, "intro-coin-0")
 
 
 if __name__ == "__main__":

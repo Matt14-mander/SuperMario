@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ai-platformer-lab"
 version = "0.1.0"
-description = "An AI-native platformer, reinforcement-learning environment, and procedural-content laboratory."
+description = "AI-native 2D platformer lab with deterministic simulation, RL benchmarks, procedural content, adaptive difficulty, and deployable agents."
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

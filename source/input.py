@@ -10,9 +10,12 @@ class KeyboardInput:
 
     def __init__(self) -> None:
         self._pressed: set[int] = set()
+        self._just_pressed: set[int] = set()
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.KEYDOWN:
+            if event.key not in self._pressed:
+                self._just_pressed.add(event.key)
             self._pressed.add(event.key)
         elif event.type == pygame.KEYUP:
             self._pressed.discard(event.key)
@@ -35,6 +38,9 @@ class KeyboardInput:
             pygame.K_SPACE,
             pygame.K_LSHIFT,
             pygame.K_RSHIFT,
+            pygame.K_p,
+            pygame.K_r,
+            pygame.K_ESCAPE,
         )
         for key in tracked_keys:
             if pressed[key]:
@@ -44,6 +50,12 @@ class KeyboardInput:
 
     def is_pressed(self, key: int) -> bool:
         return key in self._pressed
+
+    def was_pressed(self, key: int) -> bool:
+        return key in self._just_pressed
+
+    def end_frame(self) -> None:
+        self._just_pressed.clear()
 
     def __getitem__(self, key: int) -> bool:
         return self.is_pressed(key)
