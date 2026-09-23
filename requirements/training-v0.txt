@@ -1,0 +1,5 @@
+# Runtime used for the first PlatformerState-v0 PPO baseline on Windows CPython 3.12.
+gymnasium==1.3.0
+numpy==2.5.3
+stable-baselines3==2.9.0
+torch==2.14.0

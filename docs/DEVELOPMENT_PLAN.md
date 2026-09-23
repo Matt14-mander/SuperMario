@@ -70,7 +70,8 @@
 - [x] 实现 random、move-right、rule-jump 三个 scripted baselines；
 - [x] 记录固定 seed 的 episode 结果和关键指标；
 - [ ] 增加逐 tick replay 文件与回放工具；
-- [ ] 通过 SB3 environment checker 和 1,000 次随机 episode 门禁。
+- [x] 通过 SB3 environment checker 和 1,000 次随机 episode 门禁；
+- [x] 通过 reward exploit audit：进度守恒、金币一次性、原地负收益和终局符号。
 
 验收标准：键盘与 scripted agent 走相同 action 接口；environment checker 通过；benchmark 可批量运行。
 
@@ -78,11 +79,11 @@
 
 目标：形成第一个可以量化比较的学习闭环。
 
-- [ ] 固定训练、验证和未见关卡 seed；
-- [ ] 训练 MLP PPO 状态策略；
+- [x] 固定训练、验证和未见关卡 seed；
+- [x] 训练首个 100k-step MLP PPO 状态基线；
 - [ ] 建立 curriculum：平地 → 缺口 → 障碍 → 敌人；
-- [ ] 保存配置、随机种子、checkpoint 和评估结果；
-- [ ] 指标包含成功率、最大进度、死亡原因和 sample efficiency；
+- [x] 保存配置、随机种子、checkpoint、Monitor 日志和评估结果；
+- [x] 首版指标包含成功率、进度、episode return、步数和金币；
 - [ ] 建立回归阈值，防止引擎改动悄悄破坏策略。
 
 验收标准：PPO 在未见基础关卡上显著超过 scripted move-right baseline，训练过程可复现。
@@ -130,7 +131,7 @@
 
 ## 下一迭代建议
 
-先完成 SB3 checker、1,000 次随机 episode 稳定性检查和 reward sanity check；通过后进入 Phase 3，训练首个 MLP PPO baseline。
+PPO v0 已完成但只达到 move-right 水平。下一迭代实现平地、单管道和单缺口训练关卡及 curriculum，使 PPO 首次超过 move-right；之后再增加 best-model checkpoint 与多 seed 正式实验。
 
 在该竖切通过人工游玩验收前，不接入 Gymnasium、PPO、Jev 或 LLM SDK，也不继续扩展 legacy `Player` 的独立物理逻辑。
 

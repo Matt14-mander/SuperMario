@@ -14,6 +14,8 @@ dependencies = [
 
 [project.scripts]
 platformer-benchmark = "scripts.benchmark_scripted:main"
+platformer-rl-check = "scripts.validate_rl_readiness:main"
+platformer-train-ppo = "scripts.train_ppo:main"
 
 [project.optional-dependencies]
 benchmark = [
@@ -23,8 +25,8 @@ benchmark = [
 training = [
     "gymnasium>=1.0,<2",
     "numpy>=1.26,<3",
-    "stable-baselines3>=2.4",
-    "torch>=2.2",
+    "stable-baselines3>=2.4,<3",
+    "torch>=2.2,<3",
 ]
 deployment = [
     "onnx>=1.16",

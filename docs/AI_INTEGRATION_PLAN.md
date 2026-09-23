@@ -19,11 +19,11 @@ PPO 适合作为本项目第一个“学习型”AI，但不应成为第一个 a
 | Dynamic content | 至少一种动态实体、score/reward/reset | 金币已满足 |
 | Settings | 版本化 seed、物理与 episode 参数 | 已满足 |
 | Environment | Gymnasium reset/step/spaces/render | `PlatformerState-v0` 已实现 |
-| Validation | Gymnasium 与 SB3 checker | Gymnasium 已通过，SB3 待执行 |
+| Validation | Gymnasium 与 SB3 checker | 已通过 |
 | Baselines | random、move-right、rule-jump | 已实现 |
 | Benchmark | 固定训练/验证/未见 seeds 与指标 | v0 已实现 |
 
-因此环境接口已经达到 PPO 预备阶段；在 reward 压力测试、随机 rollout 门禁和 SB3 checker 完成后即可开始正式 PPO baseline，不需要等待所有敌人和砖块迁移完成。
+1,000 episode 随机稳定性门禁与 reward exploit audit 已通过，首个 100k-step MLP PPO baseline 已运行。它尚未超过 move-right，因此当前重点从“接通 PPO”转为“用 curriculum 解决探索问题”。不需要等待所有敌人和砖块迁移完成。
 
 ## PlatformerState-v0 建议契约
 
@@ -69,6 +69,8 @@ reward 应由 environment/wrapper 组合，core 只保留语义事件与基础 t
 - reward 不存在原地刷分、反复刷金币或自杀获利；
 - train/validation/unseen seeds 已分离；
 - observation/action/reward 标记为 v1 并写入 checkpoint metadata。
+
+以上门禁已满足；PPO v0 checkpoint metadata 同时记录配置、动作表、依赖版本和 validation 结果。
 
 ## 其他 AI 的接入时机
 

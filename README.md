@@ -18,6 +18,8 @@
 - headless 单元测试与真实 Pygame 集成测试；
 - 已注册的 `PlatformerState-v0`：14 维状态 observation、10 个离散动作与 reward breakdown；
 - random、move-right、rule-jump 三个固定 seed scripted benchmark 基线；
+- SB3 checker、1,000 episode 稳定性门禁和 reward exploit audit；
+- 可复现的 MLP PPO 训练、Monitor 日志、模型保存与确定性评估链路；
 - 为 Gymnasium、PPO、PCG、DDA、Jev、LLM 和 ONNX 预留的模块边界。
 
 尚未迁移：敌人、可交互砖块/箱子、power-up、checkpoint/传送、完整音频流程与原创资产。
@@ -94,6 +96,28 @@ observation, info = env.reset(seed=100)
 
 seed 集合和 action-repeat 固定在 [`config/benchmark_v0.json`](config/benchmark_v0.json)。当前关卡本身尚无随机内容，因此 scripted 策略跨 seed 的结果相同；这些 seed 会在 PCG/随机实体进入后继续作为稳定评估协议。
 
+## RL 门禁与 PPO
+
+安装训练依赖后，运行完整的 1,000 episode 前置门禁：
+
+```powershell
+python -m scripts.validate_rl_readiness --output runs/readiness_v0.json
+```
+
+训练首个 MLP PPO baseline：
+
+```powershell
+python -m scripts.train_ppo --output-dir runs/ppo_state_v0_seed_20260923
+```
+
+快速验证训练链路可使用：
+
+```powershell
+python -m scripts.train_ppo --timesteps 4096 --output-dir runs/ppo_smoke
+```
+
+训练配置位于 [`config/ppo_state_v0.json`](config/ppo_state_v0.json)，首轮实验结果与下一步分析见 [`docs/PPO_BASELINE_V0.md`](docs/PPO_BASELINE_V0.md)。当前 PPO v0 尚未通关，其 deterministic policy 与 move-right baseline 同样停在首个管道；下一轮应建立平地/单障碍 curriculum。
+
 ## 架构
 
 ```text
@@ -149,6 +173,6 @@ LLM/PCG、DDA 和 Jev 会在 LevelSpec、telemetry 与 benchmark 稳定后接入
 
 ## 项目阶段
 
-当前阶段：**可玩共享核心 + `PlatformerState-v0` + scripted benchmark**。
+当前阶段：**RL readiness gates 完成 + 首个 MLP PPO baseline 已运行**。
 
-下一阶段：**reward/observation 压力测试、SB3 checker、随机 episode 稳定性门禁，然后 PPO baseline**。
+下一阶段：**建立平地 → 单管道 → 单缺口 curriculum，让 PPO 明显超过 move-right baseline**。

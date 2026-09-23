@@ -7,7 +7,7 @@ try:
 
     import ai_platformer.envs
     from ai_platformer.agents.scripted import MoveRightAgent, RuleJumpAgent
-    from ai_platformer.benchmark import evaluate_scripted_agent
+    from ai_platformer.benchmark import evaluate_scripted_agent, run_reward_exploit_audit
     from ai_platformer.envs import OBSERVATION_SIZE, PlatformerStateEnv
 
     GYMNASIUM_AVAILABLE = True
@@ -60,6 +60,25 @@ class PlatformerStateEnvironmentTests(unittest.TestCase):
             set(info["reward_components"]),
             {"progress", "coin", "success", "death", "time"},
         )
+
+    def test_environment_step_limit_truncates_episode(self) -> None:
+        env = PlatformerStateEnv(episode_step_limit=3)
+        env.reset(seed=7)
+
+        for _ in range(3):
+            _, _, terminated, truncated, info = env.step(0)
+
+        self.assertFalse(terminated)
+        self.assertTrue(truncated)
+        self.assertEqual(info["outcome"], "time_limit")
+        self.assertEqual(info["episode_step"], 3)
+
+    def test_reward_exploit_audit_passes(self) -> None:
+        report = run_reward_exploit_audit()
+
+        self.assertTrue(report.passed)
+        self.assertLess(report.noop_return, 0.0)
+        self.assertFalse(report.duplicate_collectibles)
 
     def test_rule_jump_baseline_beats_move_right(self) -> None:
         move_right = evaluate_scripted_agent("move-right", MoveRightAgent, [100], max_steps=500)

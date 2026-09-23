@@ -13,6 +13,8 @@ from ai_platformer.content.legacy import LegacyLevelRepository
 from ai_platformer.core import Action, BasicPlatformerCore, WorldSnapshot
 from ai_platformer.settings import GameplaySettings, load_gameplay_settings
 
+from .reward import RewardConfig, compose_reward
+
 
 class ObservationIndex(IntEnum):
     """Stable indices of the ``PlatformerState-v0`` observation contract."""
@@ -48,19 +50,25 @@ class PlatformerStateEnv(gym.Env[np.ndarray, int]):
         seed: int | None = None,
         action_repeat: int = 4,
         sensor_range: float = 240.0,
+        episode_step_limit: int | None = None,
         settings: GameplaySettings | None = None,
+        reward_config: RewardConfig | None = None,
     ) -> None:
         super().__init__()
         if action_repeat <= 0:
             raise ValueError("action_repeat must be positive")
         if sensor_range <= 0:
             raise ValueError("sensor_range must be positive")
+        if episode_step_limit is not None and episode_step_limit <= 0:
+            raise ValueError("episode_step_limit must be positive")
 
         self.settings = settings or load_gameplay_settings()
         self.level_id = level_id or self.settings.level_id
         self.default_seed = self.settings.seed if seed is None else seed
         self.action_repeat = action_repeat
         self.sensor_range = sensor_range
+        self.episode_step_limit = episode_step_limit
+        self.reward_config = reward_config or RewardConfig()
         self.repository = LegacyLevelRepository()
         self.level = self.repository.load(self.level_id)
         self.core = BasicPlatformerCore(self.repository.load, config=self.settings.physics)
@@ -73,6 +81,7 @@ class PlatformerStateEnv(gym.Env[np.ndarray, int]):
         )
         self._episode_done = True
         self._episode_return = 0.0
+        self._episode_steps = 0
 
     def reset(
         self,
@@ -90,6 +99,7 @@ class PlatformerStateEnv(gym.Env[np.ndarray, int]):
         state = self.core.reset(seed=actual_seed, level_id=self.level_id)
         self._episode_done = False
         self._episode_return = 0.0
+        self._episode_steps = 0
         return self._observation(state), self._info(state, core_ticks=0)
 
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
@@ -115,16 +125,23 @@ class PlatformerStateEnv(gym.Env[np.ndarray, int]):
                 break
 
         state = self.core.state
-        progress_reward = (state.progress - previous.progress) * 5.0
         coin_delta = int(state.metadata.get("coins_collected", 0)) - previous_coins
-        reward_parts = {
-            "progress": progress_reward,
-            "coin": coin_delta * 0.5,
-            "success": 10.0 if core_info.get("outcome") == "success" else 0.0,
-            "death": -10.0 if core_info.get("outcome") == "death" else 0.0,
-            "time": -0.001,
-        }
-        reward = float(sum(reward_parts.values()))
+        self._episode_steps += 1
+        if (
+            not terminated
+            and not truncated
+            and self.episode_step_limit is not None
+            and self._episode_steps >= self.episode_step_limit
+        ):
+            truncated = True
+            core_info["outcome"] = "time_limit"
+        reward, reward_parts = compose_reward(
+            previous_progress=previous.progress,
+            current_progress=state.progress,
+            coin_delta=coin_delta,
+            outcome=core_info.get("outcome"),
+            config=self.reward_config,
+        )
         self._episode_return += reward
         self._episode_done = terminated or truncated
 
@@ -165,7 +182,7 @@ class PlatformerStateEnv(gym.Env[np.ndarray, int]):
                 self._signed(coin_dx / self.sensor_range),
                 self._signed(coin_dy / self.sensor_range),
                 self._unit(coins_collected / coins_total if coins_total else 0.0),
-                self._unit(1.0 - state.tick / config.max_episode_steps),
+                self._remaining_time(state),
             ],
             dtype=np.float32,
         )
@@ -221,11 +238,17 @@ class PlatformerStateEnv(gym.Env[np.ndarray, int]):
             "seed": state.seed,
             "tick": state.tick,
             "core_ticks": core_ticks,
+            "episode_step": self._episode_steps,
             "progress": state.progress,
             "score": int(state.metadata.get("score", 0)),
             "coins_collected": int(state.metadata.get("coins_collected", 0)),
             "coins_total": int(state.metadata.get("coins_total", 0)),
         }
+
+    def _remaining_time(self, state: WorldSnapshot) -> float:
+        if self.episode_step_limit is not None:
+            return self._unit(1.0 - self._episode_steps / self.episode_step_limit)
+        return self._unit(1.0 - state.tick / self.settings.physics.max_episode_steps)
 
     @staticmethod
     def _unit(value: float) -> float:

@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "environment_id": "PlatformerState-v0",
+  "episodes": 1000,
+  "max_steps_per_episode": 256,
+  "base_seed": 20260923
+}
